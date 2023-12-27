@@ -6,3 +6,14 @@ GET http://localhost:3000/api/posts
 
 ### get post by ID
 GET http://localhost:3000/api/posts/10
+
+### Create post
+POST http://localhost:3000/api/posts
+Content-Type:  application/json
+
+{
+    "title": "Post 22",
+    "author": "Author 22",
+    "date": "2022-07-07",
+    "content": "Text Area of text"
+}
