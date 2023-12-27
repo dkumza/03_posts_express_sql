@@ -1,2 +1,8 @@
 ### main  page
 GET http://localhost:3000/
+
+### get all posts 
+GET http://localhost:3000/api/posts
+
+### get post by ID
+GET http://localhost:3000/api/posts/10

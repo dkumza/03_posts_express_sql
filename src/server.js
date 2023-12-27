@@ -39,6 +39,33 @@ app.get('/api/posts', async (req, res) => {
    }
 });
 
+// GET /api/post/:id - get post by ID
+// SELECT * FROM `posts`
+// WHERE CustomerID=id;
+app.get('/api/posts/:id', async (req, res) => {
+   console.log(req.params.id);
+   const postID = req.params.id;
+   try {
+      // log in
+      const connection = await mysql.createConnection({
+         database: 'bit_main',
+         host: 'localhost',
+         user: 'root',
+         password: '',
+      });
+      // returns rows
+      const [rows, fields] = await connection.query(
+         `SELECT * FROM posts WHERE post_id=${req.params.id}`
+      );
+      res.json(rows);
+      // log out
+      connection.end();
+   } catch (error) {
+      console.warn('/api/posts/:id', error);
+      res.status(500).json('something wrong');
+   }
+});
+
 app.listen(port, () => {
    console.log(`Server is listening on port ${port}`);
 });
