@@ -1,4 +1,4 @@
-# To start
+# Post from SQL (CRUD)
 
 1. clone repo
 2. `npm i` to install modules
