@@ -1,6 +1,7 @@
 # To start
 
-1. `npm i` pasileisti
-2. nukopijuoti .env.example i .env
-3. `npm start` arba `npm run dev`
-4. `npm run lintf` tikrina ir taiso klaidas
+1. clone repo
+2. `npm i` to install modules
+3. copy .env.example to .env
+4. `npm start` or`npm run dev`
+5. `npm run lintf` check for problems and errors
