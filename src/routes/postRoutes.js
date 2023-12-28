@@ -21,32 +21,21 @@ postsRouter.get(
    })
 );
 
-postsRouter.use(handleErrors);
-
 // GET /api/post/:id - get post by ID
 // SELECT * FROM `posts`
 // WHERE post ID=postID;
-postsRouter.get('/api/posts/:postID', async (req, res) => {
-   const { postID } = req.params;
-
-   try {
-      connection = await mysql.createConnection(dbConfig);
-
+postsRouter.get(
+   '/api/posts/:postID',
+   asyncHandler(async (req, res) => {
+      const { postID } = req.params;
       const sql = 'SELECT * FROM posts WHERE post_id=?';
-
-      const [rows, fields] = await connection.execute(sql, [postID]);
-      if (rows.length === 1) {
-         res.json(...rows);
-         return;
+      const [rows] = await pool.execute(sql, [postID]);
+      if (rows.length === 0) {
+         throw new Error(`Post by ID === ${postID} not found`);
       }
-      res.status(400).json(rows);
-   } catch (error) {
-      console.warn('return post by ID error', error);
-      res.status(500).json('something wrong');
-   } finally {
-      if (connection) connection.end();
-   }
-});
+      res.json(...rows);
+   })
+);
 
 // CREATE /api/post/ - create new post
 // INSERT INTO posts (title, author, date, content) VALUES (?, ?, ?, ?)
@@ -100,5 +89,7 @@ postsRouter.delete('/api/posts/:postID', async (req, res) => {
       if (connection) connection.end();
    }
 });
+
+postsRouter.use(handleErrors);
 
 module.exports = postsRouter;
