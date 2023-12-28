@@ -3,6 +3,7 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
+const { dbConfig } = require('./cfg');
 
 const app = express();
 
@@ -20,51 +21,49 @@ app.get('/', (req, res) => {
 // GET /api/posts - get all posts
 // SELECT * FROM `posts`
 app.get('/api/posts', async (req, res) => {
+   let connection;
    try {
       // log in
-      const connection = await mysql.createConnection({
-         database: 'bit_main',
-         host: 'localhost',
-         user: 'root',
-         password: '',
-      });
+      connection = await mysql.createConnection(dbConfig);
       // returns rows
-      const [rows, fields] = await connection.query('SELECT * FROM `posts`');
+      const [rows, fields] = await connection.execute('SELECT * FROM `posts`');
       res.json(rows);
       // log out
       connection.end();
    } catch (error) {
       console.warn('/api/posts', error);
       res.status(500).json('something wrong');
+   } finally {
+      if (connection) connection.end();
    }
 });
 
 // GET /api/post/:id - get post by ID
 // SELECT * FROM `posts`
-// WHERE CustomerID=id;
-app.get('/api/posts/:id', async (req, res) => {
-   const postID = req.params.id;
+// WHERE post ID=postID;
+app.get('/api/posts/:postID', async (req, res) => {
+   const { postID } = req.params;
+   console.log(postID);
+
+   let connection;
    try {
-      // log in
-      const connection = await mysql.createConnection({
-         database: 'bit_main',
-         host: 'localhost',
-         user: 'root',
-         password: '',
-      });
-      // returns rows
-      const [rows, fields] = await connection.query(
-         `SELECT * FROM posts WHERE post_id=${postID}`
-      );
-      res.json(rows);
-      // log out
-      connection.end();
+      connection = await mysql.createConnection(dbConfig);
+
+      const sql = 'SELECT * FROM posts WHERE post_id=?';
+
+      const [rows, fields] = await connection.execute(sql, [postID]);
+      if (rows.length === 1) {
+         res.json(...rows);
+         return;
+      }
+      res.status(400).json(rows);
    } catch (error) {
-      console.warn('/api/posts/:id', error);
+      console.warn('single post err', error);
       res.status(500).json('something wrong');
+   } finally {
+      if (connection) connection.end();
    }
 });
-
 // CREATE /api/post/ - create new post
 // INSERT INTO posts (title, author, date, content) VALUES (?, ?, ?, ?)
 app.post('/api/posts/', async (req, res) => {
@@ -79,8 +78,8 @@ app.post('/api/posts/', async (req, res) => {
          password: '',
       });
       // returns rows
-      const query = `INSERT INTO posts (title, author, date, content) VALUES (?, ?, ?, ?)`;
-      const [rows, fields] = await connection.query(query, [
+      const sql = `INSERT INTO posts (title, author, date, content) VALUES (?, ?, ?, ?)`;
+      const [rows, fields] = await connection.execute(sql, [
          req.body.title,
          req.body.author,
          req.body.date,
