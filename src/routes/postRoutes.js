@@ -2,29 +2,26 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const { dbConfig } = require('../cfg');
 
+// Middleware import
+const { handleErrors, asyncHandler } = require('../middleware');
+
 // Create Routes
 const postsRouter = express.Router();
 
 let connection;
+const pool = mysql.createPool(dbConfig);
 
 // GET /api/posts - get all posts
 // SELECT * FROM `posts`
-postsRouter.get('/api/posts', async (req, res) => {
-   try {
-      // log in
-      connection = await mysql.createConnection(dbConfig);
-      // returns rows
-      const [rows, fields] = await connection.execute('SELECT * FROM `posts`');
+postsRouter.get(
+   '/api/posts',
+   asyncHandler(async (req, res) => {
+      const [rows] = await pool.execute('SELECT * FROM posts');
       res.json(rows);
-      // log out
-      connection.end();
-   } catch (error) {
-      console.warn('cant return post', error);
-      res.status(500).json('something wrong');
-   } finally {
-      if (connection) connection.end();
-   }
-});
+   })
+);
+
+postsRouter.use(handleErrors);
 
 // GET /api/post/:id - get post by ID
 // SELECT * FROM `posts`
