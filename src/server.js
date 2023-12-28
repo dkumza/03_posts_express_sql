@@ -9,6 +9,8 @@ const app = express();
 
 const port = process.env.PORT || 5000;
 
+let connection;
+
 // Middleware
 app.use(express.json());
 app.use(morgan('dev'));
@@ -21,7 +23,6 @@ app.get('/', (req, res) => {
 // GET /api/posts - get all posts
 // SELECT * FROM `posts`
 app.get('/api/posts', async (req, res) => {
-   let connection;
    try {
       // log in
       connection = await mysql.createConnection(dbConfig);
@@ -31,7 +32,7 @@ app.get('/api/posts', async (req, res) => {
       // log out
       connection.end();
    } catch (error) {
-      console.warn('/api/posts', error);
+      console.warn('cant return post', error);
       res.status(500).json('something wrong');
    } finally {
       if (connection) connection.end();
@@ -43,9 +44,7 @@ app.get('/api/posts', async (req, res) => {
 // WHERE post ID=postID;
 app.get('/api/posts/:postID', async (req, res) => {
    const { postID } = req.params;
-   console.log(postID);
 
-   let connection;
    try {
       connection = await mysql.createConnection(dbConfig);
 
@@ -58,12 +57,13 @@ app.get('/api/posts/:postID', async (req, res) => {
       }
       res.status(400).json(rows);
    } catch (error) {
-      console.warn('single post err', error);
+      console.warn('return post by ID error', error);
       res.status(500).json('something wrong');
    } finally {
       if (connection) connection.end();
    }
 });
+
 // CREATE /api/post/ - create new post
 // INSERT INTO posts (title, author, date, content) VALUES (?, ?, ?, ?)
 app.post('/api/posts/', async (req, res) => {
@@ -89,8 +89,31 @@ app.post('/api/posts/', async (req, res) => {
       // log out
       connection.end();
    } catch (error) {
-      console.warn('/api/posts/:id', error);
+      console.warn('CREATE post error', error);
       res.status(500).json('something wrong');
+   }
+});
+
+// DELETE /api/posts/:postID by postID
+app.delete('/api/posts/:postID', async (req, res) => {
+   const { postID } = req.params;
+
+   try {
+      connection = await mysql.createConnection(dbConfig);
+      const sql = 'DELETE FROM posts WHERE post_id=?';
+      const [rows] = await connection.execute(sql, [postID]);
+      if (rows.affectedRows === 1) {
+         res.json({
+            msg: `post with ID ${postID} was deleted`,
+         });
+         return;
+      }
+      res.status(400).json({ msg: 'no rows affected', rows });
+   } catch (error) {
+      console.warn('DELETE post error', error);
+      res.status(500).json('something wrong');
+   } finally {
+      if (connection) connection.end();
    }
 });
 
