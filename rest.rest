@@ -15,7 +15,8 @@ Content-Type:  application/json
     "title": "Post 22",
     "author": "Author 22",
     "date": "2022-07-07",
-    "content": "Text Area of text"
+    "content": "Text Area of text",
+    "cat_id": 3
 }
 
 ### Delete post

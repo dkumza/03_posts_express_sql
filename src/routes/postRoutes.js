@@ -62,30 +62,29 @@ postsRouter.get('/api/posts/:postId', async (req, res) => {
 // INSERT INTO posts (title, author, date, content) VALUES (?, ?, ?, ?)
 postsRouter.post('/api/posts/', async (req, res) => {
    console.log(req.body);
+   const { title, author, date, content, cat_id: catID } = req.body;
 
-   try {
-      // log in
-      const connection = await mysql.createConnection({
-         database: 'bit_main',
-         host: 'localhost',
-         user: 'root',
-         password: '',
-      });
-      // returns rows
-      const sql = `INSERT INTO posts (title, author, date, content) VALUES (?, ?, ?, ?)`;
-      const [rows, fields] = await connection.execute(sql, [
-         req.body.title,
-         req.body.author,
-         req.body.date,
-         req.body.content,
-      ]);
-      res.json(rows);
-      // log out
-      connection.end();
-   } catch (error) {
-      console.warn('CREATE post error', error);
-      res.status(500).json('something wrong');
+   const sql = `
+    INSERT INTO posts (title, author, date, content, cat_id) 
+    VALUES (?,?,?,?,?)
+    `;
+
+   const [postsArr, error] = await getSqlData(sql, [
+      title,
+      author,
+      date,
+      content,
+      catID,
+   ]);
+
+   if (error) {
+      console.log('error' === error);
+      res.status(500).json({ msg: 'something wrong' });
+      return;
    }
+
+   if (postsArr.affectedRows === 1)
+      res.json({ msg: `Created successfully new Post` });
 });
 
 // DELETE /api/posts/:postID by postID
