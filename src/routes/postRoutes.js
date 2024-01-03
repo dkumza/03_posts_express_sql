@@ -90,23 +90,20 @@ postsRouter.post('/api/posts/', async (req, res) => {
 // DELETE /api/posts/:postID by postID
 postsRouter.delete('/api/posts/:postID', async (req, res) => {
    const { postID } = req.params;
+   const sql = 'DELETE FROM posts WHERE post_id=? LIMIT 1';
+   const [postsArr, error] = await getSqlData(sql, [postID]);
 
-   try {
-      connection = await mysql.createConnection(dbConfig);
-      const sql = 'DELETE FROM posts WHERE post_id=?';
-      const [rows] = await connection.execute(sql, [postID]);
-      if (rows.affectedRows === 1) {
-         res.json({
-            msg: `post with ID ${postID} was deleted`,
-         });
-         return;
-      }
-      res.status(400).json({ msg: 'no rows affected', rows });
-   } catch (error) {
+   if (error || postsArr.affectedRows === 0) {
       console.warn('DELETE post error', error);
-      res.status(500).json('something wrong');
-   } finally {
-      if (connection) connection.end();
+      res.status(500).json(
+         `DELETE Post with ID ${postID} was unsuccessfully. Check ID`
+      );
+      return;
+   }
+
+   if (postsArr.affectedRows === 1) {
+      res.json({ msg: `post with id ${postID} was deleted` });
+      return;
    }
 });
 
