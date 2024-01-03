@@ -8,9 +8,6 @@ const { dbConfig } = require('../cfg');
 // Create Routes
 const postsRouter = express.Router();
 
-let connection;
-const pool = mysql.createPool(dbConfig);
-
 // GET /api/posts - get all posts by params
 postsRouter.get('/api/posts', async (req, res) => {
    // const sql = 'SELECT * FROM posts';
@@ -25,7 +22,7 @@ postsRouter.get('/api/posts', async (req, res) => {
    GROUP BY posts.post_id
    `;
 
-   const [postsArr, error] = await getSqlData(sql);
+   const [postsArr, error] = await getSqlData(sql); //getting POST and ERROR from helper by passing sql param
 
    if (error) {
       console.log('error ===', error);
@@ -35,21 +32,31 @@ postsRouter.get('/api/posts', async (req, res) => {
    res.json(postsArr);
 });
 
-// // GET /api/post/:id - get post by ID
-// // SELECT * FROM `posts`
-// // WHERE post ID=postID;
-// postsRouter.get(
-//    '/api/posts/:postID',
-//    asyncHandler(async (req, res) => {
-//       const { postID } = req.params;
-//       const sql = 'SELECT * FROM posts WHERE post_id=?';
-//       const [rows] = await pool.execute(sql, [postID]);
-//       if (rows.length === 0) {
-//          throw new Error(`Post by ID === ${postID} not found`);
-//       }
-//       res.json(...rows);
-//    })
-// );
+// GET /api/post/:id - get post by ID
+// SELECT * FROM `posts`
+// WHERE post ID=postID;
+postsRouter.get('/api/posts/:postId', async (req, res) => {
+   const { postId } = req.params;
+
+   const sql = 'SELECT * FROM posts WHERE post_id=?';
+   const [postsArr, error] = await getSqlData(sql, [postId]);
+
+   if (error) {
+      console.log('error ===', error);
+      res.status(500).json('something wrong');
+      return;
+   }
+
+   if (postsArr.length === 1) {
+      res.json(postsArr[0]);
+      return;
+   }
+   if (postsArr.length === 0) {
+      res.status(404).json({ msg: `post by ${postId} not found` });
+      return;
+   }
+   res.status(400).json(postsArr);
+});
 
 // CREATE /api/post/ - create new post
 // INSERT INTO posts (title, author, date, content) VALUES (?, ?, ?, ?)
