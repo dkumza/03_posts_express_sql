@@ -62,7 +62,7 @@ postsRouter.get('/api/posts/:postId', async (req, res) => {
 // INSERT INTO posts (title, author, date, content) VALUES (?, ?, ?, ?)
 postsRouter.post('/api/posts/', async (req, res) => {
    console.log(req.body);
-   const { title, author, date, content, cat_id: catID } = req.body;
+   const { title, author, date, content, cat_id } = req.body;
 
    const sql = `
     INSERT INTO posts (title, author, date, content, cat_id) 
@@ -74,7 +74,7 @@ postsRouter.post('/api/posts/', async (req, res) => {
       author,
       date,
       content,
-      catID,
+      cat_id,
    ]);
 
    if (error) {
@@ -103,6 +103,38 @@ postsRouter.delete('/api/posts/:postID', async (req, res) => {
 
    if (postsArr.affectedRows === 1) {
       res.json({ msg: `post with id ${postID} was deleted` });
+      return;
+   }
+});
+
+// UPDATE by ID
+// PUT /api/post/:postID - edit post by ID
+postsRouter.put('/api/posts/:postID', async (req, res) => {
+   const { postID } = req.params;
+   const { title, author, date, content, cat_id } = req.body;
+   // console.log(postID);
+
+   const sql = `
+    UPDATE posts
+    SET title = ?, author = ?, date = ?, content = ?, cat_id = ?
+    WHERE post_id = ?`;
+   const [postsArr, error] = await getSqlData(sql, [
+      title,
+      author,
+      date,
+      content,
+      cat_id,
+      postID,
+   ]);
+   if (error || postsArr.affectedRows === 0) {
+      console.log('error ===', error);
+      res.status(500).json(
+         `UPDATE Post with ID ${postID} was unsuccessfully. Check ID`
+      );
+      return;
+   }
+   if (postsArr.affectedRows === 1) {
+      res.json({ msg: `Post with id ${postID} was edited. ${postsArr.info}` });
       return;
    }
 });

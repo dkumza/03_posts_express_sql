@@ -4,7 +4,6 @@ const { dbConfig } = require('./cfg');
 const pool = mysql.createPool(dbConfig);
 
 async function getSqlData(sql, argArr = []) {
-   console.log(argArr);
    let connection;
    try {
       connection = await pool.getConnection(); // connecting to DB
