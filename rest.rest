@@ -5,7 +5,7 @@ GET http://localhost:3000/
 GET http://localhost:3000/api/posts
 
 ### get post by ID
-GET http://localhost:3000/api/posts/1
+GET http://localhost:3000/api/posts/10
 
 ### Create post
 POST http://localhost:3000/api/posts
@@ -20,10 +20,10 @@ Content-Type:  application/json
 }
 
 ### Delete post
-DELETE  http://localhost:3000/api/posts/11
+DELETE  http://localhost:3000/api/posts/10
 
 ### Edit post
-PUT http://localhost:3000/api/posts/1
+PUT http://localhost:3000/api/posts/2
 Content-Type:  application/json
 
 {

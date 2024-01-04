@@ -30,7 +30,7 @@ app.use((err, req, res, next) => {
    if (err.status) return res.status(err.status).json({ error: err.message });
 
    switch (err.code) {
-      case 'ERP_DUP_ENTRY':
+      case 'ER_NO_SUCH_TABLE':
          res.status(400);
          res.json({ msg: err.sqlMessage || 'no such table' });
          return;
@@ -38,7 +38,7 @@ app.use((err, req, res, next) => {
    }
 
    res.status(500);
-   res.json('Server ERROR (from handler))');
+   res.json('Server ERROR - bad request');
 });
 
 app.listen(port, () => {

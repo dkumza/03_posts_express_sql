@@ -9,12 +9,12 @@ const { dbConfig } = require('../cfg');
 const postsRouter = express.Router();
 
 // GET /api/posts - get all posts by params
-postsRouter.get('/api/posts', async (req, res) => {
+postsRouter.get('/api/posts', async (req, res, next) => {
    // const sql = 'SELECT * FROM posts';
    const sql = `
    SELECT posts.post_id, posts.title, posts.author, posts.content, posts.date, COUNT(post_comments.comm_id) AS commentCount,
    categories.title AS categoryName
-   FROM posts
+   FROM posts1
    JOIN categories
    ON posts.cat_id=categories.cat_id
    LEFT JOIN post_comments
@@ -24,28 +24,20 @@ postsRouter.get('/api/posts', async (req, res) => {
 
    const [postsArr, error] = await getSqlData(sql); //getting POST and ERROR from helper by passing sql param
 
-   if (error) {
-      console.log('error ===', error);
-      res.status(500).json('something wrong');
-      return;
-   }
+   if (error) return next(error);
    res.json(postsArr);
 });
 
 // GET /api/post/:id - get post by ID
 // SELECT * FROM `posts`
 // WHERE post ID=postID;
-postsRouter.get('/api/posts/:postId', async (req, res) => {
+postsRouter.get('/api/posts/:postId', async (req, res, next) => {
    const { postId } = req.params;
 
    const sql = 'SELECT * FROM posts WHERE post_id=?';
    const [postsArr, error] = await getSqlData(sql, [postId]);
 
-   if (error) {
-      console.log('error ===', error);
-      res.status(500).json('something wrong');
-      return;
-   }
+   if (error) return next(error);
 
    if (postsArr.length === 1) {
       res.json(postsArr[0]);
@@ -60,7 +52,7 @@ postsRouter.get('/api/posts/:postId', async (req, res) => {
 
 // CREATE /api/post/ - create new post
 // INSERT INTO posts (title, author, date, content) VALUES (?, ?, ?, ?)
-postsRouter.post('/api/posts/', async (req, res) => {
+postsRouter.post('/api/posts/', async (req, res, next) => {
    console.log(req.body);
    const { title, author, date, content, cat_id } = req.body;
 
@@ -77,42 +69,34 @@ postsRouter.post('/api/posts/', async (req, res) => {
       cat_id,
    ]);
 
-   if (error) {
-      console.log('error' === error);
-      res.status(500).json({ msg: 'something wrong' });
-      return;
-   }
+   if (error) return next(error);
 
    if (postsArr.affectedRows === 1)
-      res.json({ msg: `Created successfully new Post` });
+      res.json({ msg: `New Post Created successfully` });
 });
 
 // DELETE /api/posts/:postID by postID
-postsRouter.delete('/api/posts/:postID', async (req, res) => {
+postsRouter.delete('/api/posts/:postID', async (req, res, next) => {
    const { postID } = req.params;
    const sql = 'DELETE FROM posts WHERE post_id=? LIMIT 1';
    const [postsArr, error] = await getSqlData(sql, [postID]);
 
-   if (error || postsArr.affectedRows === 0) {
-      console.warn('DELETE post error', error);
-      res.status(500).json(
-         `DELETE Post with ID ${postID} was unsuccessfully. Check ID`
-      );
-      return;
-   }
+   if (error) return next(error);
 
-   if (postsArr.affectedRows === 1) {
-      res.json({ msg: `post with id ${postID} was deleted` });
-      return;
-   }
+   if (postsArr.affectedRows === 1)
+      return res.json({ msg: `post with id ${postID} was deleted` });
+
+   if (postsArr.affectedRows === 0)
+      return res
+         .status(500)
+         .json(`DELETE Post with ID ${postID} was unsuccessfully. Check ID`);
 });
 
 // UPDATE by ID
 // PUT /api/post/:postID - edit post by ID
-postsRouter.put('/api/posts/:postID', async (req, res) => {
+postsRouter.put('/api/posts/:postID', async (req, res, next) => {
    const { postID } = req.params;
    const { title, author, date, content, cat_id } = req.body;
-   // console.log(postID);
 
    const sql = `
     UPDATE posts
@@ -126,17 +110,18 @@ postsRouter.put('/api/posts/:postID', async (req, res) => {
       cat_id,
       postID,
    ]);
-   if (error || postsArr.affectedRows === 0) {
-      console.log('error ===', error);
-      res.status(500).json(
-         `UPDATE Post with ID ${postID} was unsuccessfully. Check ID`
-      );
-      return;
-   }
-   if (postsArr.affectedRows === 1) {
-      res.json({ msg: `Post with id ${postID} was edited. ${postsArr.info}` });
-      return;
-   }
+
+   if (error) return next(error);
+
+   if (postsArr.affectedRows === 1)
+      return res.json({
+         msg: `Post with id ${postID} was edited. ${postsArr.info}`,
+      });
+
+   if (postsArr.affectedRows === 0)
+      return res
+         .status(500)
+         .json(`UPDATE Post with ID ${postID} was unsuccessfully. Check ID`);
 });
 
 module.exports = postsRouter;
