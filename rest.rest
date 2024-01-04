@@ -20,7 +20,7 @@ Content-Type:  application/json
 }
 
 ### Delete post
-DELETE  http://localhost:3000/api/posts/18
+DELETE  http://localhost:3000/api/posts/11
 
 ### Edit post
 PUT http://localhost:3000/api/posts/1

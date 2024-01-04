@@ -23,6 +23,24 @@ app.get('/', (req, res) => {
 // Posts Routes
 app.use('/', postsRouter);
 
+// ERROR handler
+app.use((err, req, res, next) => {
+   console.log('error from error handler', err);
+
+   if (err.status) return res.status(err.status).json({ error: err.message });
+
+   switch (err.code) {
+      case 'ERP_DUP_ENTRY':
+         res.status(400);
+         res.json({ msg: err.sqlMessage || 'no such table' });
+         return;
+      default:
+   }
+
+   res.status(500);
+   res.json('Server ERROR (from handler))');
+});
+
 app.listen(port, () => {
    console.log(`Server is listening on port ${port}`);
 });
